@@ -8,6 +8,7 @@ A fully local, multi-agent stock market analysis system for Indian markets (NSE/
 - **LLM-as-judge quality gate** — Meta-Evaluator scores each agent's reasoning before the Broker Agent weighs it
 - **Bull/Bear debate** — Broker Agent runs a multi-round Ollama debate before deciding
 - **Human-in-the-loop UI** — Local FastAPI dashboard with one-click approve/reject/modify
+- **52-week-low monitor** — alerts (dashboard + macOS notification) when a watchlist stock makes or nears a 52-week low
 - **Code-enforced risk** — VIX gate, position limits, and daily loss cap enforced in Python, not prompts
 - **Fully local** — Zerodha Kite Connect for data/execution, Ollama for LLMs, DuckDB for storage
 - **Paper mode** — all logic runs without placing real orders until you flip a config flag
@@ -132,6 +133,14 @@ All agents return a score in `[-10, +10]`. If an agent's data is unavailable it 
 
 Full agent specs: [`docs/agents.md`](docs/agents.md)
 
+## Monitors
+
+Alongside the scoring agents, lightweight monitors run on every cycle and raise informational alerts (they never place orders or affect the composite score):
+
+- **52-Week Low** — fires `NEW_52W_LOW` when a watchlist stock trades at or below its trailing 52-week low, or `NEAR_52W_LOW` when it comes within a configurable band (default 1%) above it. Alerts land on the dashboard, in DuckDB, and as a native macOS notification, with a per-ticker cooldown to avoid spam. Also runnable standalone: `python -m monitors.week52_low`.
+
+Full monitor specs: [`docs/monitors.md`](docs/monitors.md)
+
 ## Web UI
 
 The FastAPI app at `http://localhost:8080` has five pages:
@@ -225,6 +234,8 @@ Stock scraper/
 │   ├── history.py
 │   ├── news.py
 │   └── fundamentals.py
+├── monitors/
+│   └── week52_low.py
 ├── web/
 │   ├── api.py
 │   └── static/

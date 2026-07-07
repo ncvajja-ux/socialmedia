@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TypedDict
 from enum import Enum
 
@@ -27,6 +28,11 @@ class Sentiment(str, Enum):
     BULLISH = "BULLISH"
     BEARISH = "BEARISH"
     NEUTRAL = "NEUTRAL"
+
+
+class AlertKind(str, Enum):
+    NEW_52W_LOW = "NEW_52W_LOW"     # traded at or below the trailing 52-week low
+    NEAR_52W_LOW = "NEAR_52W_LOW"   # within monitors.week52_low.proximity_pct of it
 
 
 # ── Core agent result ──────────────────────────────────────────────────────────
@@ -61,6 +67,18 @@ class TraderProposal(BaseModel):
     position_size_pct: float        # fraction of capital
     reasoning: str
     confidence: float = Field(ge=0.0, le=1.0)
+
+
+# ── Monitor alerts ─────────────────────────────────────────────────────────────
+
+@dataclass
+class Week52LowAlert:
+    ticker: str
+    kind: AlertKind
+    last_price: float
+    week52_low: float
+    distance_pct: float             # (last_price - week52_low) / week52_low
+    triggered_at: datetime
 
 
 # ── Broker order ───────────────────────────────────────────────────────────────
